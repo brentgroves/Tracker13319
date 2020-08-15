@@ -1,0 +1,30 @@
+{
+  "name": "Tracker13319",
+  "version": "1.0.0",
+  "description": "Process MQTT ToolChange topic.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brentgroves/Tracker13319.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brentgroves/Tracker13319/issues"
+  },
+  "homepage": "https://github.com/brentgroves/Tracker13319#readme",
+  "devDependencies": {
+    "eslint": "^7.7.0",
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "@bgroves/common": "^1.2.0",
+    "mariadb": "^2.4.0",
+    "mqtt": "^4.1.0",
+    "node-datetime": "^2.1.2"
+  }
+}
