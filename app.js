@@ -56,7 +56,7 @@ async function ToolChange(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,T
     if (conn) conn.release(); //release to pool
   }
 }
-
+/*
 async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update) {
   let conn;
   try {
@@ -65,6 +65,23 @@ async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key
     const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update]);
     let returnValue = someRows[1][0].pReturnValue
     common.log(`UpdateCNCPartOperationAssemblyCurrentValue.returnValue=${returnValue}`);
+  } catch (err) {
+    // handle the error
+    console.log(`Error =>${err}`);
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
+}
+*/
+async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update) {
+  let conn;
+  try {
+    conn = await pool.getConnection();      
+    console.log(`In UpdateCNCPartOperationAssemblyCurrentValue with params CNC_Part_Operation_Key=${CNC_Part_Operation_Key},Set_No=${Set_No},Block_No=${Block_No},Current_Value=${Current_Value},Last_Update=${Last_Update}`)
+    // const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(1,1,1,6,"2020-08-25 10:17:55",@ReturnValue); select @ReturnValue as pReturnValue');
+    const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update]);
+    let returnValue = someRows[1][0].pReturnValue
+    console.log(`UpdateCNCPartOperationAssemblyCurrentValue.returnValue=${returnValue}`);
   } catch (err) {
     // handle the error
     console.log(`Error =>${err}`);
@@ -95,8 +112,8 @@ function main() {
   mqttClient.on('message', function(topic, message) {
     const obj = JSON.parse(message.toString()); // payload is a buffer
     common.log(`Tracker13319 => ${message.toString()}`);
-    let Last_Update = obj.Last_Update.toString();
-    common.log(`Tracker13319.Last_Update => ${Last_Update}`);
+   // let Last_Update = obj.Last_Update.toString();
+   // common.log(`Tracker13319.Last_Update => ${Last_Update}`);
 
     switch(topic) {
       case 'ToolChange':
@@ -104,7 +121,7 @@ function main() {
         break;
         //  UpdateCNCPartOperationAssemblyCurrentValue
       case 'UpdateCNCPartOperationAssemblyCurrentValue':
-        UpdateCNCPartOperationAssemblyCurrentValue(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,Last_Update);      
+        UpdateCNCPartOperationAssemblyCurrentValue(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,obj.Last_Update);      
         break;
       default:
         common.log(`Tracker13319 => topic not found!`)
