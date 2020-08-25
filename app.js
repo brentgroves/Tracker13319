@@ -41,7 +41,7 @@ const pool = mariadb.createPool( connectionString);
 
 
 
-async function ToolChange(CNC_Key,Part_key,Assembly_Key,Actual_Tool_Life,Trans_Date) {
+async function ToolChange(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Trans_Date) {
   let conn;
   try {
     conn = await pool.getConnection();      
@@ -57,13 +57,14 @@ async function ToolChange(CNC_Key,Part_key,Assembly_Key,Actual_Tool_Life,Trans_D
   }
 }
 
-async function UpdateTrackerCurrentValue(CNC_Key,Part_Key,Assembly_Key,Current_Value,Trans_Date) {
+async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update) {
   let conn;
   try {
     conn = await pool.getConnection();      
-    const someRows = await conn.query('call UpdateTrackerCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Key,Part_Key,Assembly_Key,Current_Value,Trans_Date]);
+    common.log(`In UpdateCNCPartOperationAssemblyCurrentValue with params CNC_Part_Operation_Key=${CNC_Part_Operation_Key},Set_No=${Set_No},Block_No=${Block_No},Current_Value=${Current_Value},Last_Update=${Last_Update}`)
+    const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update]);
     let returnValue = someRows[1][0].pReturnValue
-    common.log(`UpdateTrackerCurrentValue.returnValue=${returnValue}`);
+    common.log(`UpdateCNCPartOperationAssemblyCurrentValue.returnValue=${returnValue}`);
   } catch (err) {
     // handle the error
     console.log(`Error =>${err}`);
@@ -83,9 +84,9 @@ function main() {
         common.log('Tracker13319 has subscribed to: ToolChange');
       }
     });
-    mqttClient.subscribe('UpdateTrackerCurrentValue', function(err) {
+    mqttClient.subscribe('UpdateCNCPartOperationAssemblyCurrentValue', function(err) {
       if (!err) {
-        common.log('Tracker13319 has subscribed to: UpdateTrackerCurrentValue');
+        common.log('Tracker13319 has subscribed to: UpdateCNCPartOperationAssemblyCurrentValue');
       }
     });
   });
@@ -94,15 +95,19 @@ function main() {
   mqttClient.on('message', function(topic, message) {
     const obj = JSON.parse(message.toString()); // payload is a buffer
     common.log(`Tracker13319 => ${message.toString()}`);
+    let Last_Update = obj.Last_Update.toString();
+    common.log(`Tracker13319.Last_Update => ${Last_Update}`);
 
     switch(topic) {
       case 'ToolChange':
        // ToolChange(obj.CNC_Key,obj.Part_key,obj.Assembly_Key,obj.Actual_Tool_Life,obj.Trans_Date);      
         break;
-      case 'UpdateTrackerCurrentValue':
-        UpdateTrackerCurrentValue(obj.CNC_Key,obj.Part_Key,obj.Assembly_Key,obj.Current_Value,obj.Trans_Date);      
+        //  UpdateCNCPartOperationAssemblyCurrentValue
+      case 'UpdateCNCPartOperationAssemblyCurrentValue':
+        UpdateCNCPartOperationAssemblyCurrentValue(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,Last_Update);      
         break;
       default:
+        common.log(`Tracker13319 => topic not found!`)
         // code block
     }
 
