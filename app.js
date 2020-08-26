@@ -39,16 +39,32 @@ common.log(`user: ${MYSQL_USERNAME},password: ${MYSQL_PASSWORD}, database: ${MYS
 
 const pool = mariadb.createPool( connectionString);
 
+/*
+set @CNC_Part_Operation_Key = 1;
+set @Set_No = 1;
+set @Block_No = 1;
+set @Actual_Tool_Life = 2;
+set @Trans_Date = '2020-08-18 00:00:01';
+-- CNC_Part_Operation_Key=1,Set_No=1,Block_No=1,Current_Value=18136,Last_Update=2020-08-25 10:38:27
+-- "CNC_Part_Operation_Key":1,"Set_No":1,"Block_No":7,"Current_Value":29392,"Trans_Date":"2020-08-25 10:17:55"
+-- select a.* from CNC_Part_Operation_Assembly a
+CALL InsToolAssemblyChangeHistory(@CNC_Part_Operation_Key,@Set_No,@Block_No,@Actual_Tool_Life,@Trans_Date,@Tool_Assembly_Change_History_Key,@Return_Value);
+	 -- UpdateCNCPartOperationAssemblyCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue
+SELECT @Tool_Assembly_Change_History_Key,@Return_Value;
 
+*/
 
-async function ToolChange(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Trans_Date) {
+async function InsToolAssemblyChangeHistory(CNC_Part_Operation_Key,Set_No,Block_No,Actual_Tool_Assembly_Life,Trans_Date) {
   let conn;
   try {
     conn = await pool.getConnection();      
-    const someRows = await conn.query('call InsKep13319(?,?,?,?,?,?,?,?,?)',[nodeId,name,plexus_Customer_No,pcn, workcenter_Key,workcenter_Code,cnc,value,transDate]);
-    let msgString = JSON.stringify(someRows[0]);
-    const obj = JSON.parse(msgString.toString()); // payload is a buffer
-    common.log(obj);
+    console.log(`In InsToolAssemblyChangeHistory with params CNC_Part_Operation_Key=${CNC_Part_Operation_Key},Set_No=${Set_No},Block_No=${Block_No},Actual_Tool_Assembly_Life=${Actual_Tool_Assembly_Life},Trans_Date=${Trans_Date}`)
+    // const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(1,1,1,6,"2020-08-25 10:17:55",@ReturnValue); select @Tool_Assembly_Change_History_Key as pTool_Assembly_Change_History_Key, @ReturnValue as pReturnValue');
+    const someRows = await conn.query('call InsToolAssemblyChangeHistory(?,?,?,?,?,@Tool_Assembly_Change_History_Key,@Return_Value); select @Tool_Assembly_Change_History_Key as pTool_Assembly_Change_History_Key,@Return_Value as pReturn_Value',[CNC_Part_Operation_Key,Set_No,Block_No,Actual_Tool_Assembly_Life,Trans_Date]);
+    let returnValue = someRows[1][0].pReturn_Value;
+    let toolAssemblyChangeHistoryKey = someRows[1][0].pTool_Assembly_Change_History_Key;
+    console.log(`InsToolAssemblyChangeHistory.returnValue=${returnValue}`);
+    console.log(`InsToolAssemblyChangeHistory.toolAssemblyChangeHistoryKey=${toolAssemblyChangeHistoryKey}`);
   } catch (err) {
     // handle the error
     console.log(`Error =>${err}`);
@@ -96,9 +112,9 @@ function main() {
   const mqttClient = mqtt.connect(`mqtt://${MQTT_SERVER}:${MQTT_PORT}`);
 
   mqttClient.on('connect', function() {
-    mqttClient.subscribe('ToolChange', function(err) {
+    mqttClient.subscribe('InsToolAssemblyChangeHistory', function(err) {
       if (!err) {
-        common.log('Tracker13319 has subscribed to: ToolChange');
+        common.log('Tracker13319 has subscribed to: InsToolAssemblyChangeHistory');
       }
     });
     mqttClient.subscribe('UpdateCNCPartOperationAssemblyCurrentValue', function(err) {
@@ -116,8 +132,8 @@ function main() {
    // common.log(`Tracker13319.Last_Update => ${Last_Update}`);
 
     switch(topic) {
-      case 'ToolChange':
-       // ToolChange(obj.CNC_Key,obj.Part_key,obj.Assembly_Key,obj.Actual_Tool_Life,obj.Trans_Date);      
+      case 'InsToolAssemblyChangeHistory':
+        InsToolAssemblyChangeHistory(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Actual_Tool_Assembly_Life,obj.Trans_Date);      
         break;
         //  UpdateCNCPartOperationAssemblyCurrentValue
       case 'UpdateCNCPartOperationAssemblyCurrentValue':
