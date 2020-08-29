@@ -89,15 +89,15 @@ async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key
   }
 }
 */
-async function UpdateCNCPartOperationAssemblyCurrentValue(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update) {
+async function UpdateCNCPartOperationAssembly(CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update) {
   let conn;
   try {
     conn = await pool.getConnection();      
-    console.log(`In UpdateCNCPartOperationAssemblyCurrentValue with params CNC_Part_Operation_Key=${CNC_Part_Operation_Key},Set_No=${Set_No},Block_No=${Block_No},Current_Value=${Current_Value},Last_Update=${Last_Update}`)
+    console.log(`In UpdateCNCPartOperationAssembly with params CNC_Part_Operation_Key=${CNC_Part_Operation_Key},Set_No=${Set_No},Block_No=${Block_No},Current_Value=${Current_Value},Last_Update=${Last_Update}`)
     // const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(1,1,1,6,"2020-08-25 10:17:55",@ReturnValue); select @ReturnValue as pReturnValue');
-    const someRows = await conn.query('call UpdateCNCPartOperationAssemblyCurrentValue(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update]);
+    const someRows = await conn.query('call UpdateCNCPartOperationAssembly(?,?,?,?,?,@ReturnValue); select @ReturnValue as pReturnValue',[CNC_Part_Operation_Key,Set_No,Block_No,Current_Value,Last_Update]);
     let returnValue = someRows[1][0].pReturnValue
-    console.log(`UpdateCNCPartOperationAssemblyCurrentValue.returnValue=${returnValue}`);
+    console.log(`UpdateCNCPartOperationAssembly.returnValue=${returnValue}`);
   } catch (err) {
     // handle the error
     console.log(`Error =>${err}`);
@@ -117,9 +117,9 @@ function main() {
         common.log('Tracker13319 has subscribed to: InsToolAssemblyChangeHistory');
       }
     });
-    mqttClient.subscribe('UpdateCNCPartOperationAssemblyCurrentValue', function(err) {
+    mqttClient.subscribe('UpdateCNCPartOperationAssembly', function(err) {
       if (!err) {
-        common.log('Tracker13319 has subscribed to: UpdateCNCPartOperationAssemblyCurrentValue');
+        common.log('Tracker13319 has subscribed to: UpdateCNCPartOperationAssembly');
       }
     });
   });
@@ -136,8 +136,8 @@ function main() {
         InsToolAssemblyChangeHistory(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Actual_Tool_Assembly_Life,obj.Trans_Date);      
         break;
         //  UpdateCNCPartOperationAssemblyCurrentValue
-      case 'UpdateCNCPartOperationAssemblyCurrentValue':
-        UpdateCNCPartOperationAssemblyCurrentValue(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,obj.Last_Update);      
+      case 'UpdateCNCPartOperationAssembly':
+        UpdateCNCPartOperationAssembly(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,obj.Last_Update);      
         break;
       default:
         common.log(`Tracker13319 => topic not found!`)
