@@ -116,7 +116,7 @@ function main() {
       if (!err) {
         common.log('Tracker13319 has subscribed to: InsToolAssemblyChangeHistory');
       }
-    });
+    });                 //UpdateCNCPartOperationAssembly
     mqttClient.subscribe('UpdateCNCPartOperationAssembly', function(err) {
       if (!err) {
         common.log('Tracker13319 has subscribed to: UpdateCNCPartOperationAssembly');
@@ -135,7 +135,7 @@ function main() {
       case 'InsToolAssemblyChangeHistory':
         InsToolAssemblyChangeHistory(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Actual_Tool_Assembly_Life,obj.Trans_Date);      
         break;
-        //  UpdateCNCPartOperationAssemblyCurrentValue
+          //UpdateCNCPartOperationAssembly
       case 'UpdateCNCPartOperationAssembly':
         UpdateCNCPartOperationAssembly(obj.CNC_Part_Operation_Key,obj.Set_No,obj.Block_No,obj.Current_Value,obj.Last_Update);      
         break;
