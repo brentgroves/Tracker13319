@@ -187,6 +187,7 @@ async function InsAssemblyMachiningHistory(
   Running_Total,
   Running_Entire_Time,
   Increment_By_Check,
+  Zero_Detect,
   Start_Time,
   End_Time
 ) {
@@ -194,11 +195,13 @@ async function InsAssemblyMachiningHistory(
   try {
     conn = await pool.getConnection();
     console.log(
-      `In InsAssemblyMachiningHistory with params CNC_Approved_Workcenter_Key=${CNC_Approved_Workcenter_Key},Pallet_No=${Pallet_No},Tool_Var=${Tool_Var},Current_Values=${Current_Value},Running_Total=${Running_Total},Running_Entire_Time=${Running_Entire_Time},Increment_By_Check=${Increment_By_Check},Start_Time=${Start_Time},End_Time=${End_Time}`
+      `In InsAssemblyMachiningHistory with params CNC_Approved_Workcenter_Key=${CNC_Approved_Workcenter_Key},Pallet_No=${Pallet_No},Tool_Var=${Tool_Var},Current_Values=${Current_Value},Running_Total=${Running_Total},Running_Entire_Time=${Running_Entire_Time},
+      Increment_By_Check=${Increment_By_Check},Zero_Detect=${Zero_Detect},Start_Time=${Start_Time},End_Time=${End_Time}`
     );
     const someRows = await conn.query(
-      "call InsAssemblyMachiningHistory(?,?,?,?,?,?,?,?,?,@Assembly_Machining_History_Key,@Return_Value); select @Assembly_Machining_History_Key as pAssembly_Machining_History_Key,@Return_Value as pReturn_Value",
-      [CNC_Approved_Workcenter_Key, Pallet_No, Tool_Var, Current_Value,Running_Total,Running_Entire_Time,Increment_By_Check,Start_Time, End_Time]
+      "call InsAssemblyMachiningHistory(?,?,?,?,?,?,?,?,?,?,@Assembly_Machining_History_Key,@Return_Value); select @Assembly_Machining_History_Key as pAssembly_Machining_History_Key,@Return_Value as pReturn_Value",
+      [CNC_Approved_Workcenter_Key, Pallet_No, Tool_Var, Current_Value,Running_Total,Running_Entire_Time,Increment_By_Check,
+      Zero_Detect, Start_Time, End_Time]
     );
     let returnValue = someRows[1][0].pReturn_Value;
     let Assembly_Machining_History_Key =
@@ -330,6 +333,7 @@ CREATE PROCEDURE InsAssemblyMachiningHistory
           obj.Running_Total,
           obj.Running_Entire_Time,
           obj.Increment_By_Check,
+          obj.Zero_Detect,
           obj.Start_Time,
           obj.End_Time
         );
